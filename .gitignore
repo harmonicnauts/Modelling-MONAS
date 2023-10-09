@@ -1,2 +1,3 @@
-# Ignore txt files
+# Ignore txt and xlsx files
 *.txt
+*.xlsx
