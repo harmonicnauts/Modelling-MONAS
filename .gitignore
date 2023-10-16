@@ -1,3 +1,4 @@
 # Ignore txt and xlsx files
 *.txt
 *.xlsx
+*.csv
