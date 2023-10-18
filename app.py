@@ -103,7 +103,7 @@ with col11:
 i = 0
 for coordinates in geo_df_list:
     m.add_child(
-        folium.Marker(
+        folium.CircleMarker(
             location=coordinates,
             popup="WMOID: "
             + str(geo_df['lokasi'][i])
@@ -113,6 +113,10 @@ for coordinates in geo_df_list:
             + "<br>"
             + "Coordinates: "
             + str(geo_df_list[i]),
+            fill=True,
+            fill_opacity=0.6,
+            opacity=1,
+            radius=50
 
         )
     )
