@@ -3,6 +3,9 @@
 *.xlsx
 <<<<<<< HEAD
 *.csv
+=======
+<<<<<<< HEAD
+*.csv
 *.joblib
 Data/
 catboost_info/
@@ -12,4 +15,8 @@ catboost_info/
 =======
 *.csv
 >>>>>>> 4fd031ebf5ad8b3fd2facd8da49d814c40f7c3ce
+<<<<<<< HEAD
 Random Test/logs.log
+=======
+>>>>>>> 80b794f9ca2ae58657db64439719128cc0d5fa58
+>>>>>>> 4751c4e6f809775152467e9b4f611f8f4bbcf463

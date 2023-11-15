@@ -6,6 +6,8 @@
 'cuml' is a soft dependency and not included in the pycaret installation. Please run: `pip install cuml` to install.
 2023-10-12 10:15:34,897:WARNING:
 'cuml' is a soft dependency and not included in the pycaret installation. Please run: `pip install cuml` to install.
+<<<<<<< HEAD
+=======
 2023-10-18 14:10:42,808:WARNING:
 'cuml' is a soft dependency and not included in the pycaret installation. Please run: `pip install cuml` to install.
 2023-10-18 14:10:42,808:WARNING:
@@ -1581,6 +1583,7 @@ Alternately, you can install this by running `pip install pycaret[models]`
 2023-10-18 15:15:31,890:INFO:Random Forest Regressor Imported successfully
 2023-10-18 15:15:31,895:INFO:Starting cross validation
 2023-10-18 15:15:31,896:INFO:Cross validating with KFold(n_splits=10, random_state=None, shuffle=False), n_jobs=1
+<<<<<<< HEAD
 2023-10-18 16:37:04,705:INFO:Calculating mean and std
 2023-10-18 16:37:04,718:INFO:Creating metrics dataframe
 2023-10-18 16:37:04,726:INFO:Uploading results into container
@@ -14368,3 +14371,6 @@ _catboost.CatBoostError: C:/Go_Agent/pipelines/BuildMaster/catboost.git/catboost
 2023-10-28 23:42:23,231:INFO:Plot type: parameter
 2023-10-28 23:42:23,235:INFO:Visual Rendered Successfully
 2023-10-28 23:42:23,369:INFO:plot_model() successfully completed......................................
+=======
+>>>>>>> 80b794f9ca2ae58657db64439719128cc0d5fa58
+>>>>>>> 4751c4e6f809775152467e9b4f611f8f4bbcf463
