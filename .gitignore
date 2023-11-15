@@ -6,6 +6,10 @@
 *.joblib
 Data/
 catboost_info/
+*.log
+*.pkl
+*.json
 =======
 *.csv
 >>>>>>> 4fd031ebf5ad8b3fd2facd8da49d814c40f7c3ce
+Random Test/logs.log

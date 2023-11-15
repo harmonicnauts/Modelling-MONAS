@@ -21,8 +21,8 @@ st.header('Model Correction of INA-NWP Assimilation (MONAS) Dashboard')
 
 # membaca data
 weather = pd.read_csv(
-    './Modelling/Data/data_fix_temp.txt')
-df_wmoid = pd.read_excel('./Modelling/Data/daftar_wmoid.xlsx')
+    '../Data/data_fix_temp.txt')
+df_wmoid = pd.read_excel('../Data/daftar_wmoid.xlsx')
 # mengganti nama kolom WMOID agar dapat dimerge dengan df utama
 df_wmoid = df_wmoid.rename(columns={'WMOID': 'lokasi'})
 df_wmoid = df_wmoid[['lokasi', 'Nama UPT']]
@@ -56,7 +56,7 @@ linechart_sorted_merged = linechart_sorted.merge(df_wmoid, on='lokasi')
 
 center = (-7.471424, 110.319866)
 
-m = folium.Map(location=center, zoom_start=10)
+m = folium.Map(location=center, zoom_start=8)
 geo_df_list = [[point.xy[1][0], point.xy[0][0]] for point in geo_df.geometry]
 
 
