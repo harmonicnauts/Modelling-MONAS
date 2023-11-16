@@ -85,6 +85,8 @@ df_pred_temp = pd.concat([ina_nwp_input['Date'], ina_nwp_input_filtered[['lokasi
 df_pred_temp.columns = ['Date','lokasi', 'suhu2m.degC.', 'prediction']
 df_pred_temp = df_pred_temp.dropna()
 
+
+
 #OUTPUT HUMIDITY
 df_pred_humid = pd.concat([ina_nwp_input['Date'], ina_nwp_input_filtered[['lokasi', 'rh2m...']], pd.Series(humid_pred, index = ina_nwp_input_filtered.index)], axis=1)
 df_pred_humid.columns = ['Date','lokasi', 'rh2m...', 'prediction']
@@ -154,6 +156,7 @@ data_table_lokasi_temp = data_table_lokasi_temp.rename(columns={'mean': 'average
 grouped_humid = df_pred_humid.groupby('lokasi')['prediction'].agg(['max', 'mean', 'min']).astype('float64').round(1)
 data_table_lokasi_humid = df_wmoid.merge(grouped_humid, left_on='lokasi', right_index=True)
 data_table_lokasi_humid = data_table_lokasi_humid.rename(columns={'mean': 'average humidity', 'max': 'max humidity', 'min': 'min humidity'})
+
 
 
 # Merge the dataframe
@@ -364,13 +367,51 @@ app.layout = html.Div([
 ])
 
 
+
+def plot_linegraph(df_linegraph, upt_name, nwp_output):
+    figure = px.line(
+            df_linegraph, 
+            x='Date', 
+            y='prediction', 
+            title=f'Humidity in UPT {upt_name} (UTF)', 
+            color='lokasi', 
+            markers=True, 
+            line_shape='spline'
+            )
+    
+    figure.add_scatter(
+            x=df_linegraph['Date'], 
+            y=df_linegraph[nwp_output], 
+            mode='lines', 
+            name='Output suhu 2m INA-NWP',
+            line_shape='spline'
+            )
+    
+    figure.update_layout(
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            )
+        )
+    
+    return figure
+
+
+def get_datatable(wmoid_lokasi, prop_lokasi, column):
+    return data_table_lokasi[wmoid_lokasi == prop_lokasi][column].iloc[0]
+
+
+
 # Callback function for changing 
 @callback(
         Output("temp-metric", "value"),
         Output("humid-metric", "value"),
         Output("temp_graph_per_loc", "figure"), 
         Output("humid_graph_per_loc", "figure"), 
-        Input("geojson", "clickData"),
+        Input ("geojson", "clickData"),
         prevent_initial_call=True
         )
 def upt_click(feature):
@@ -389,77 +430,27 @@ def upt_click(feature):
         dff_one_loc_humidity = df_pred_humid[df_pred_humid['lokasi'] == prop_lokasi][humid_features_to_display]
         
         # Plotly Express Figure for  Temperature
-        temp_figure = px.line(
-            dff_one_loc_temp, 
-            x='Date', 
-            y='prediction', 
-            title=f'Temperatures in UPT {nama_upt} (UTF)', 
-            color='lokasi', 
-            markers=True, 
-            line_shape='spline'
-            )
-        temp_figure.add_scatter(
-            x=dff_one_loc_temp['Date'], 
-            y=dff_one_loc_temp['suhu2m.degC.'], 
-            mode='lines', 
-            name='Output suhu 2m INA-NWP',
-            line_shape='spline'
-            )
-        temp_figure.update_layout(
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1,
-                )
-            )
+        temp_figure = plot_linegraph(dff_one_loc_temp, nama_upt, 'suhu2m.degC.')
 
         # Plotly Express Figure for  Humidity
-        humid_figure = px.line(
-            dff_one_loc_humidity, 
-            x='Date', 
-            y='prediction', 
-            title=f'Humidity in UPT {nama_upt} (UTF)', 
-            color='lokasi', 
-            markers=True, 
-            line_shape='spline'
-            )
-        humid_figure.add_scatter(
-            x=dff_one_loc_humidity['Date'], 
-            y=dff_one_loc_humidity['rh2m...'], 
-            mode='lines', 
-            name='Output kelembaban 2m INA-NWP',
-            line_shape='spline'
-            )
-        humid_figure.update_layout(
-                legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            ))
+        humid_figure = plot_linegraph(dff_one_loc_humidity, nama_upt, 'rh2m...')
 
         # Min - Max Value for Inactive Temperature Slider
-        min_temp = data_table_lokasi[wmoid_lokasi == prop_lokasi]['min temp'].iloc[0]
-        avg_temp = data_table_lokasi[wmoid_lokasi == prop_lokasi]['average temp'].iloc[0]
-        max_temp = data_table_lokasi[wmoid_lokasi == prop_lokasi]['max temp'].iloc[0]
+        min_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'min temp')
+        avg_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'average temp')
+        max_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'max temp')
 
         # Min - Max Value for Inactive Humidity Slider
-        min_humid = data_table_lokasi[wmoid_lokasi == prop_lokasi]['min humidity'].iloc[0]
-        avg_humid = data_table_lokasi[wmoid_lokasi == prop_lokasi]['average humidity'].iloc[0]
-        max_humid = data_table_lokasi[wmoid_lokasi == prop_lokasi]['max humidity'].iloc[0]
+        min_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'min humidity')
+        avg_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'average humidity')
+        max_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'max humidity')
 
         # Combining the value to one array
         temp_slider_value = [min_temp, max_temp]
         humid_slider_value = [min_humid, max_humid]
 
         return temp_slider_value, humid_slider_value, temp_figure, humid_figure
-    else:
-        figure =  px.line(dff_one_loc_temp, y='prediction', title=f'Temperatures in UPT x', color='lokasi', markers=True, line_shape='spline')
-        dff_one_loc_temp = df_pred_temp[df_pred_temp['lokasi'] == 96001][['prediction', 'lokasi']]
-        return figure
+    
 
 
 
