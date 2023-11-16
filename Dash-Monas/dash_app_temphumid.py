@@ -94,7 +94,7 @@ df_pred_humid = df_pred_humid.dropna()
 
 
 # Load script 
-colorscale = [
+temp_colorscale = [
     'rgb(0, 10, 112)',
     'rgb(0, 82, 190)', 
     'rgb(51, 153, 255)', 
@@ -107,6 +107,19 @@ colorscale = [
     'rgb(165, 0, 0)',
     'rgb(50, 0, 0)'
     ]
+
+humid_colorscale = [
+    'rgb(204, 102, 0)',
+    'rgb(255, 128, 0)', 
+    'rgb(255, 193, 51)', 
+    'rgb(255, 255, 102)', 
+    'rgb(255, 255, 255)',
+    'rgb(153, 255, 255)',
+    'rgb(102, 178, 255)',
+    'rgb(10, 102, 204)',
+    'rgb(10, 76, 153)',
+    'rgb(10, 51, 102)',
+    ]
 chroma = "https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"  # js lib used for colors
 
 
@@ -114,7 +127,8 @@ chroma = "https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js" 
 # Min and Max temp for point colors
 vmin = 0
 vmax = 38
-colorbar = dl.Colorbar(colorscale=colorscale, width=20, height=150, min=vmin, max=vmax, unit='°C')
+temp_colorbar = dl.Colorbar(colorscale=temp_colorscale, width=20, height=150, min=vmin, max=vmax, unit='°C')
+humid_colorbar = dl.Colorbar(colorscale=humid_colorscale, width=20, height=150, min=vmin, max=vmax, unit='°C')
 
 BMKG_LOGO = "https://cdn.bmkg.go.id/Web/Logo-BMKG-new.png"
 
@@ -187,7 +201,7 @@ upt = dl.GeoJSON(
             radius=5),
             min=vmin, 
             max=vmax, 
-            colorscale=colorscale)
+            colorscale=temp_colorscale)
 )
 print('upt_gpd\n', upt_gpd)
 
@@ -238,7 +252,7 @@ app.layout = html.Div([
                     dl.ScaleControl(position="bottomleft"),
                     dl.FullScreenControl(),
                     upt,
-                    colorbar,
+                    temp_colorbar,
                 ],
                 center=[-2.058210136999589, 116.78386542384145],
                 markerZoomAnimation = True,
@@ -251,9 +265,28 @@ app.layout = html.Div([
                 html.Div([
                     html.Div([ # Div for map, metric, and graph
                         html.Div([
+                            dcc.Tabs(
+                                id="graph-tabs",
+                                value='temp-tab',
+                                parent_className='custom-tabs',
+                                className='custom-tabs-container',
+                                children=[
+                                    dcc.Tab(
+                                        label='Temperature',
+                                        value='temp-tab',
+                                        className='custom-tab',
+                                        selected_className='custom-tab--selected'
+                                    ),
+                                    dcc.Tab(
+                                        label='Humidity',
+                                        value='humid-tab',
+                                        className='custom-tab',
+                                        selected_className='custom-tab--selected'
+                                    ),
+                            ]),
                             dcc.Loading(
                                 dcc.Graph(
-                                    id='temp_graph_per_loc',
+                                    id='graph_per_loc',
                                     figure={
                                         'layout' : {
                                             "xaxis": {
@@ -276,51 +309,11 @@ app.layout = html.Div([
                                         }
                                     } 
                                 ),
-                        ),
+                            ),
                             dcc.RangeSlider(
-                                id='temp-metric',
+                                id='graph-metric',
                                 min=0,
                                 max=40,
-                                value=[0,0],
-                                step=None,
-                                vertical=False,
-                                tooltip={
-                                    "placement": "bottom", 
-                                    "always_visible": True
-                                    },
-                                disabled=True,
-                            ),
-
-                            dcc.Loading(
-                                dcc.Graph(
-                                    id='humid_graph_per_loc', 
-                                    figure={
-                                        'layout' : {
-                                            "xaxis": {
-                                            "visible": False
-                                            },
-                                            "yaxis": {
-                                                "visible": False
-                                            },
-                                            "annotations": [
-                                                {
-                                                    "text": "Click on one of the Station in the map to view the graph.",
-                                                    "xref": "paper",
-                                                    "yref": "paper",
-                                                    "showarrow": False,
-                                                    "font": {
-                                                        "size": 28
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                    } 
-                                ),
-                            ),
-                            dcc.RangeSlider(
-                                id='humid-metric',
-                                min=0,
-                                max=100,
                                 value=[0,0],
                                 step=None,
                                 vertical=False,
@@ -337,7 +330,6 @@ app.layout = html.Div([
                         'grid-column': 'auto auto',
                         'grid-auto-flow': 'column'
                     }),
-
                 ], 
                 style={
                     'display': 'grid', 
@@ -368,12 +360,12 @@ app.layout = html.Div([
 
 
 
-def plot_linegraph(df_linegraph, upt_name, nwp_output):
+def plot_linegraph(df_linegraph, upt_name, nwp_output, graph_type):
     figure = px.line(
             df_linegraph, 
             x='Date', 
             y='prediction', 
-            title=f'Humidity in UPT {upt_name} (UTF)', 
+            title=f'{graph_type} in UPT {upt_name} (UTF)', 
             color='lokasi', 
             markers=True, 
             line_shape='spline'
@@ -407,14 +399,13 @@ def get_datatable(wmoid_lokasi, prop_lokasi, column):
 
 # Callback function for changing 
 @callback(
-        Output("temp-metric", "value"),
-        Output("humid-metric", "value"),
-        Output("temp_graph_per_loc", "figure"), 
-        Output("humid_graph_per_loc", "figure"), 
+        Output("graph-metric", "value"),
+        Output("graph_per_loc", "figure"), 
         Input ("geojson", "clickData"),
+        Input ("graph-tabs", "value"),
         prevent_initial_call=True
         )
-def upt_click(feature):
+def upt_click(feature, graph_mode):
     print(feature)    
     if feature is not None:
         wmoid_lokasi = data_table_lokasi['lokasi']
@@ -429,27 +420,38 @@ def upt_click(feature):
         dff_one_loc_temp = df_pred_temp[df_pred_temp['lokasi'] == prop_lokasi][temp_features_to_display]
         dff_one_loc_humidity = df_pred_humid[df_pred_humid['lokasi'] == prop_lokasi][humid_features_to_display]
         
-        # Plotly Express Figure for  Temperature
-        temp_figure = plot_linegraph(dff_one_loc_temp, nama_upt, 'suhu2m.degC.')
 
-        # Plotly Express Figure for  Humidity
-        humid_figure = plot_linegraph(dff_one_loc_humidity, nama_upt, 'rh2m...')
+        print('graph_mode', graph_mode)
+        if graph_mode == 'temp-tab':
+            # Plotly Express Figure for  Temperature
+            type = 'Temperature'
+            temp_figure = plot_linegraph(dff_one_loc_temp, nama_upt, 'suhu2m.degC.', type)
 
-        # Min - Max Value for Inactive Temperature Slider
-        min_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'min temp')
-        avg_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'average temp')
-        max_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'max temp')
+            # Min - Max Value for Inactive Temperature Slider
+            min_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'min temp')
+            avg_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'average temp')
+            max_temp = get_datatable(wmoid_lokasi, prop_lokasi, 'max temp')
 
-        # Min - Max Value for Inactive Humidity Slider
-        min_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'min humidity')
-        avg_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'average humidity')
-        max_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'max humidity')
+            # Combining the value to one array
+            temp_slider_value = [min_temp, max_temp]
 
-        # Combining the value to one array
-        temp_slider_value = [min_temp, max_temp]
-        humid_slider_value = [min_humid, max_humid]
+            return temp_slider_value, temp_figure
 
-        return temp_slider_value, humid_slider_value, temp_figure, humid_figure
+
+        elif graph_mode == 'humid-tab':
+            # Plotly Express Figure for  Humidity
+            type = 'Humidity'
+            humid_figure = plot_linegraph(dff_one_loc_humidity, nama_upt, 'rh2m...', type)
+            
+            # Min - Max Value for Inactive Humidity Slider
+            min_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'min humidity')
+            avg_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'average humidity')
+            max_humid = get_datatable(wmoid_lokasi, prop_lokasi, 'max humidity')
+            
+            # Combining the value to one array
+            humid_slider_value = [min_humid, max_humid]
+
+            return humid_slider_value, humid_figure
     
 
 
