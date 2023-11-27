@@ -10,7 +10,13 @@ import dash_bootstrap_components as dbc
 from dash_extensions.javascript import assign
 from xgboost import XGBRegressor
 import pickle
+import joblib
+import os
 
+# List of models
+pathway = './models'
+
+files = [f for f in os.listdir(pathway)]
 
 
 # Initiate xgb
@@ -72,9 +78,9 @@ ina_nwp_input_filtered = ina_nwp_input_filtered.rename(
 
 # Load ML Models
 # etr = pickle.load(open('weather_extra_trees_regressor.pkl', 'rb'))
-temp_model_xgb.load_model('Temp_xgb_tuned_R2_77.json')
-humid_model_xgb.load_model('humid_xgb_tuned_noShuffle.json')
-with open('huber_regressor_bad.pkl','rb') as f:
+temp_model_xgb = joblib.load('./models/Temp_xgb_tuned__bagged_30_noShuffle.joblib')
+humid_model_xgb.load_model('./models/humid_xgb_tuned_noShuffle.json')
+with open('./models/huber_regressor_bad.pkl','rb') as f:
     prec_model = pickle.load(f)
 
 print(ina_nwp_input_filtered.columns)
@@ -82,12 +88,12 @@ temp_pred = temp_model_xgb.predict(ina_nwp_input_filtered.drop(columns=['lokasi'
 humid_pred = humid_model_xgb.predict(ina_nwp_input_filtered.drop(columns=['prec_nwp']))
 prec_pred = prec_model.predict(ina_nwp_input_filtered[[
     'lokasi', 'suhu2m.degC.', 'dew2m.degC.', 'rh2m...', 'wspeed.m.s.',
-       'wdir.deg.', 'lcloud...', 'mcloud...', 'hcloud...', 'surpre.Pa.',
-       'clmix.kg.kg.', 'wamix.kg.kg.', 'outlr.W.m2.', 'pblh.m.', 'lifcl.m.',
-       'cape.j.kg.', 'mdbz', 't950.degC.', 'rh950...', 'ws950.m.s.',
-       'wd950.deg.', 't800.degC.', 'rh800...', 'ws800.m.s.', 'wd800.deg.',
-       't500.degC.', 'rh500...', 'ws500.m.s.', 'wd500.deg.', 'ELEV',
-       'prec_nwp'
+    'wdir.deg.', 'lcloud...', 'mcloud...', 'hcloud...', 'surpre.Pa.',
+    'clmix.kg.kg.', 'wamix.kg.kg.', 'outlr.W.m2.', 'pblh.m.', 'lifcl.m.',
+    'cape.j.kg.', 'mdbz', 't950.degC.', 'rh950...', 'ws950.m.s.',
+    'wd950.deg.', 't800.degC.', 'rh800...', 'ws800.m.s.', 'wd800.deg.',
+    't500.degC.', 'rh500...', 'ws500.m.s.', 'wd500.deg.', 'ELEV',
+    'prec_nwp'
 ]])
 
 
@@ -140,20 +146,20 @@ humid_colorscale = [
     ]
 
 prec_colorscale=[
-  'rgb(6, 62, 114)',
-  'rgb(34, 112, 192)',
-  'rgb(57, 196, 234)',
-  'rgb(0, 255, 193)',
-  'rgb(0, 224, 71)',
-  'rgb(250, 255, 66)',
-  'rgb(255, 173, 13)',
-  'rgb(255, 108, 0)',
-  'rgb(179, 58, 0)',
-  'rgb(252, 38, 42)',
-  'rgb(226, 0, 34)',
-  'rgb(255, 0, 203)',
-  'rgb(201, 0, 154)',
-  'rgb(121, 0, 123)',
+    'rgb(6, 62, 114)',
+    'rgb(34, 112, 192)',
+    'rgb(57, 196, 234)',
+    'rgb(0, 255, 193)',
+    'rgb(0, 224, 71)',
+    'rgb(250, 255, 66)',
+    'rgb(255, 173, 13)',
+    'rgb(255, 108, 0)',
+    'rgb(179, 58, 0)',
+    'rgb(252, 38, 42)',
+    'rgb(226, 0, 34)',
+    'rgb(255, 0, 203)',
+    'rgb(201, 0, 154)',
+    'rgb(121, 0, 123)',
 ]
 chroma = "https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"  # js lib used for colors
 
@@ -296,6 +302,14 @@ app.layout = html.Div([
             ),
         ]
     ),
+
+    # dcc.Dropdown(id='model-list',
+    #             options=[
+    #                 {'label': i, 'value': i} for i in files
+    #             ],
+    #             multi=True
+    # ),
+
     html.Div([
         html.Div([  # Wrap the map and header in a div for layout
             dl.Map(

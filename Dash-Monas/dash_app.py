@@ -72,7 +72,7 @@ ina_nwp_input_filtered = ina_nwp_input_filtered.rename(
 
 # Load ML Models
 # etr = pickle.load(open('weather_extra_trees_regressor.pkl', 'rb'))
-temp_model_xgb.load_model('Temp_xgb_tuned_R2_77.json')
+temp_model_xgb.load_model('Temp_xgb_tuned_RMSE_1_78.json')
 humid_model_xgb.load_model('humid_xgb_tuned_noShuffle.json')
 with open('huber_regressor_bad.pkl','rb') as f:
     prec_model = pickle.load(f)
